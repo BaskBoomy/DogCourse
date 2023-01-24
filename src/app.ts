@@ -5,13 +5,8 @@ import { getQueryString } from "./helper/query";
 
 const express = require('express');
 const axios = require('axios').default;
-
-
+const env = require('dotenv').config();
 const app = express();
-
-const client_id = '8vps61fg52';
-const client_secret = 'zkeCHVqUw89tj2QQxZo6f0bSIcVeDhSEzZCj07X4';
-
 // 서울
 // 37.413294 ~ 37.715133
 // 126.269311 ~ 127.734086
