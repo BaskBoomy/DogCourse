@@ -1,0 +1,28 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/DogCourse
+    overwrite: yes
+file_exists_behavior: OVERWRITE
+permissions:
+  - object: /home/ec2-user/DogCourse
+    owner: root
+    group: root
+hooks:
+# ApplicationStop:
+# DownloadBundle:
+#  BeforeInstall:
+#    - location: scripts/before_install.sh
+#      timeout: 300
+#      runas: root
+# Install:
+  AfterInstall:
+    - location: scripts/after_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: scripts/deploy.sh
+      timeout: 300
+      runas: root
+# ValidateService:
