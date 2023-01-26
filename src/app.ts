@@ -1,3 +1,4 @@
+import { quickReplies, textResponse } from "./type/kakao/response_datas";
 import { Request, Response } from "express";
 import { getPetFriendlyList } from "./service/pet_friendly_list";
 
@@ -11,24 +12,32 @@ app.use(logger("dev", {}));
 app.use(bodyParser.json());
 app.post("/search", async (req: Request, res: Response) => {
   const { type, address } = req.body.action.params;
-  console.log(req.body);
-  console.log(`type: ${type}, address: ${address}`);
+  console.log('userInfo',req.body.userRequest.user);
+  console.log('searchKeyWord',`type: ${type}, address: ${address}`);
+
   const petFriendlyPlaceList = await getPetFriendlyList(
     type as string,
     address as string
   );
+
   const responseBody = {
     version: "2.0",
-    template: {
-      outputs: [
-        {
-          carousel: {
-            type: "basicCard",
-            items: petFriendlyPlaceList,
-          },
+    template: petFriendlyPlaceList
+      ? {
+          outputs: [
+            { carousel: { type: "basicCard", items: petFriendlyPlaceList } },
+          ],
+        }
+      : {
+          outputs: [
+            {
+              simpleText: {
+                text: textResponse.NOPLACE,
+              },
+            },
+          ],
+          quickReplies:quickReplies.DEFAULT,
         },
-      ],
-    },
   };
   res.status(200).send(responseBody);
 });

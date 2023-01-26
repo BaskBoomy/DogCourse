@@ -31,7 +31,6 @@ export const getPetFriendlyList = async (type: string, address: string) => {
       await axios(NAVER_SEARCH_URL(param)).then((res: any) => res.data.result.place.list);
 
     //반려동물 동반 가능한 장소 리스트
-    console.time();
     const pet_friendly_place_list:KakaoBotPetFriendlyResult[] = await pipe(
       naver_search_result_list,
       toAsync,
@@ -70,9 +69,9 @@ export const getPetFriendlyList = async (type: string, address: string) => {
       take(10),
       toArray
     );
-    console.timeEnd();
     return pet_friendly_place_list;
   } catch (e) {
     console.log(e);
+    return null;
   }
 };
