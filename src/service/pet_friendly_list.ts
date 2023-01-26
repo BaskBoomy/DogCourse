@@ -1,61 +1,48 @@
-import { KakaoBotButton } from "./../type/kakao/types";
-import { geocoding } from "../helper/geolocation";
-import { getQueryString } from "../helper/query";
-import {
-  pipe,
-  map,
-  toArray,
-  toAsync,
-  filter,
-  concurrent,
-  take,
-} from "@fxts/core";
+import { BizHour, NaverOptionId } from './../type/naver/types';
 import axios from "axios";
-import { NaverSearchResult, NaverOption } from "type/naver/types";
-import { KakaoBotPetFriendlyResult } from "type/kakao/types";
+import { pipe,map,toArray,toAsync,filter,concurrent,take, find } from "@fxts/core";
+import { getXYCoordinate } from "../helper/geolocation";
+import { getQueryString } from "../helper/query";
+import { NaverSearchResult, NaverOption, NaverSearchQueryParams } from "type/naver/types";
+import { KakaoBotButton,KakaoBotPetFriendlyResult} from "./../type/kakao/types";
+import { time } from 'console';
+
+const NAVER_SEARCH_URL = (params:NaverSearchQueryParams) => `https://map.naver.com/v5/api/search?${getQueryString(params)}`;
+const PLACE_INFO_URL = (id:string) => `https://map.naver.com/v5/api/sites/summary/${id}?lang=ko`;
+const NAVER_MAP_URL = (type:string,id:number|string) => `https://map.naver.com/v5/search/${type}/place/${id}`;
 
 export const getPetFriendlyList = async (type: string, address: string) => {
   try {
-    const searchCoord = await geocoding(address as string);
-    console.log(searchCoord);
+    //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
+    const search_coordinate = await getXYCoordinate(address as string);
+    console.log(search_coordinate);
+
     const param = {
       query: type,
       type: "all",
-      searchCoord,
+      search_coordinate,
       displayCount: 100,
       isPlaceRecommendationReplace: true,
       lang: "ko",
     };
 
-    const naver_search_url = `https://map.naver.com/v5/api/search?${getQueryString(
-      param
-    )}`;
-
     //전체 검색 결과
-    const naver_search_result_list = await axios(naver_search_url).then(
-      (res: any) => res.data.result.place.list
-    );
+    const naver_search_result_list = 
+      await axios(NAVER_SEARCH_URL(param)).then((res: any) => res.data.result.place.list);
 
     //반려동물 동반 가능한 장소 리스트
     console.time();
-    const pet_friendly_place_list = await pipe(
+    const pet_friendly_place_list:KakaoBotPetFriendlyResult[] = await pipe(
       naver_search_result_list,
       toAsync,
-      map(
-        async (place: { id: string }) =>
-          await axios(
-            `https://map.naver.com/v5/api/sites/summary/${place.id}?lang=ko`
-          ).then((res) => res.data)
-      ),
+      map(async (place: { id: string })=>await axios(PLACE_INFO_URL(place.id)).then((res) => res.data)),
       concurrent(100),
-      filter((place: NaverSearchResult) =>
-        place.options.find((d: NaverOption) => d.id == 15)
-      ),
+      filter((place: NaverSearchResult)=>place.options.find((d: NaverOption) => d.id == NaverOptionId.DOGFRIENDLY)),
       map((dog_place: NaverSearchResult): KakaoBotPetFriendlyResult => {
         let buttons: KakaoBotButton[] = [{
           action: "webLink",
           label: "지도",
-          webLinkUrl: `https://map.naver.com/v5/search/${param.query}/place/${dog_place.id}`,
+          webLinkUrl: NAVER_MAP_URL(param.query,dog_place.id),
         }];
         dog_place.urlList[0] && buttons.push({
           action: "webLink",
@@ -74,7 +61,7 @@ export const getPetFriendlyList = async (type: string, address: string) => {
           thumbnail: {
             imageUrl: dog_place.imageURL,
             link: {
-              web: `https://map.naver.com/v5/search/${param.query}/place/${dog_place.id}`,
+              web: NAVER_MAP_URL(param.query,dog_place.id),
             },
           },
           buttons,
