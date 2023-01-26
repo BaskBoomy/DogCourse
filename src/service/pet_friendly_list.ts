@@ -1,11 +1,11 @@
-import { BizHour, NaverOptionId } from './../type/naver/types';
+import { NaverOptionId } from './../type/naver/types';
 import axios from "axios";
 import { pipe,map,toArray,toAsync,filter,concurrent,take, find } from "@fxts/core";
 import { getXYCoordinate } from "../helper/geolocation";
 import { getQueryString } from "../helper/query";
 import { NaverSearchResult, NaverOption, NaverSearchQueryParams } from "type/naver/types";
 import { KakaoBotButton,KakaoBotPetFriendlyResult} from "./../type/kakao/types";
-import { time } from 'console';
+require("console-stamp")(console, 'yyyy/mm/dd HH:MM:ss'); 
 
 const NAVER_SEARCH_URL = (params:NaverSearchQueryParams) => `https://map.naver.com/v5/api/search?${getQueryString(params)}`;
 const PLACE_INFO_URL = (id:string) => `https://map.naver.com/v5/api/sites/summary/${id}?lang=ko`;
@@ -14,25 +14,25 @@ const NAVER_MAP_URL = (type:string,id:number|string) => `https://map.naver.com/v
 export const getPetFriendlyList = async (type: string, address: string) => {
   try {
     //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
-    const search_coordinate = await getXYCoordinate(address as string);
-    console.log(search_coordinate);
+    const searchCoord = await getXYCoordinate(address as string);
+    console.log(searchCoord);
 
     const param = {
       query: type,
       type: "all",
-      search_coordinate,
+      searchCoord,
       displayCount: 100,
       isPlaceRecommendationReplace: true,
       lang: "ko",
     };
 
     //전체 검색 결과
-    const naver_search_result_list = 
+    const naverSearchResultList = 
       await axios(NAVER_SEARCH_URL(param)).then((res: any) => res.data.result.place.list);
 
     //반려동물 동반 가능한 장소 리스트
-    const pet_friendly_place_list:KakaoBotPetFriendlyResult[] = await pipe(
-      naver_search_result_list,
+    const petFriendlyPlaceList:KakaoBotPetFriendlyResult[] = await pipe(
+      naverSearchResultList,
       toAsync,
       map(async (place: { id: string })=>await axios(PLACE_INFO_URL(place.id)).then((res) => res.data)),
       concurrent(100),
@@ -69,7 +69,7 @@ export const getPetFriendlyList = async (type: string, address: string) => {
       take(10),
       toArray
     );
-    return pet_friendly_place_list;
+    return petFriendlyPlaceList;
   } catch (e) {
     console.log(e);
     return null;

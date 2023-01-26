@@ -41,7 +41,7 @@ export type NaverSearchResult = {
 export type NaverSearchQueryParams = {
   query: string;
   type: string;
-  search_coordinate: string;
+  searchCoord: string;
   displayCount: number;
   isPlaceRecommendationReplace: boolean;
   lang: string;

@@ -6,6 +6,7 @@ const express = require("express");
 const env = require("dotenv").config();
 const logger = require("morgan");
 const bodyParser = require("body-parser");
+require("console-stamp")(console, 'yyyy/mm/dd HH:MM:ss'); 
 
 const app = express();
 app.use(logger("dev", {}));
