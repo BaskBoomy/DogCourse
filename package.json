@@ -21,6 +21,7 @@
   "main": "app.js",
   "scripts": {
     "start:dev": "nodemon src/app.ts",
+    "start:prod": "tsc && pm2 reload ecosystem.config.js --env production",
     "start": "tsc && node dist/app.js",
     "build": "tsc",
     "dev": "tsc -w"
