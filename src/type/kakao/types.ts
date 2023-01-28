@@ -1,3 +1,4 @@
+import { quickReplies } from 'src/type/kakao/response_datas';
 export type KakaoBotThumbnail = {
   imageUrl: string;
   link?:{web:string};
@@ -17,3 +18,23 @@ export type KakaoBotPetFriendlyResult = {
   thumbnail: KakaoBotThumbnail;
   buttons: KakaoBotButton[];
 };
+
+export type KakaoTemplateOutput = {
+  carousel?:{type:string,items:KakaoBotPetFriendlyResult[]};
+  simpleText?: {text:string};
+}
+
+export type QuickReply = {
+  label:string;
+  action:string;
+  blockId:string;
+  extra:{type:string,address:string};
+}
+export type KakaoTemplate = {
+  outputs:KakaoTemplateOutput[];
+  quickReplies?:QuickReply[];
+}
+export type KakaoResponseBody = {
+  version:string;
+  template:KakaoTemplate;
+}
