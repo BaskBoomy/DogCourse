@@ -9,6 +9,8 @@ permissions:
   - object: /home/ec2-user/DogCourse
     owner: root
     group: root
+    type:
+      - directory
 hooks:
 # ApplicationStop:
 # DownloadBundle:
