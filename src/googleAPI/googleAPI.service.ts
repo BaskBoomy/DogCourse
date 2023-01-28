@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios/dist';
 import { Injectable, Logger } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
+import { GOOGLE_GEO_URL } from 'src/API/api';
 
 @Injectable()
 export class GoogleAPIService{
@@ -9,14 +10,12 @@ export class GoogleAPIService{
     
     async getXYCoordinate(place: string): Promise<string> {
         const {data} = await firstValueFrom(
-            this.httpService
-                .get(`https://maps.googleapis.com/maps/api/geocode/json?address=${place}&key=${process.env.GOOGLE_SECRET_KEY}`)
-                .pipe(
-                    catchError((error:any)=>{
-                        this.logger.error(error.response.data);
-                        throw 'An error happened!';
-                    })
-                )
+            this.httpService.get(GOOGLE_GEO_URL(place)).pipe(
+                catchError((error:any)=>{
+                    this.logger.error(error.response.data);
+                    throw 'An error happened!';
+                })
+            )
         );
         console.log(process.env.GOOGLE_SECRET_KEY);
         console.log(data);

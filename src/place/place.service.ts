@@ -8,13 +8,7 @@ import { NaverOption, NaverOptionId, NaverSearchQueryParams, NaverSearchResult }
 import { KakaoBotButton, KakaoBotPetFriendlyResult, KakaoResponseBody } from 'src/type/kakao/types';
 import { concurrent, filter, map, pipe, take, toArray, toAsync } from '@fxts/core';
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
-
-const NAVER_SEARCH_URL = (params: NaverSearchQueryParams) =>
-  `https://map.naver.com/v5/api/search?${getQueryString(params)}`;
-const PLACE_INFO_URL = (id: string) =>
-  `https://map.naver.com/v5/api/sites/summary/${id}?lang=ko`;
-const NAVER_MAP_URL = (type: string, id: number | string) =>
-  `https://map.naver.com/v5/search/${type}/place/${id}`;
+import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
 
 @Injectable()
 export class PlaceService {
