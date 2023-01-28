@@ -8,7 +8,7 @@ export class PlaceController {
   constructor(private readonly placeService: PlaceService) {}
 
   @Post('getDogFriendlyPlace')
-  getDogFriendlyPlace(@Body() placeInfo:PlaceInfo): Promise<KakaoResponseBody> {
-    return this.placeService.getDogFriendlyPlace(placeInfo);
+  getDogFriendlyPlace(@Body() data): Promise<KakaoResponseBody> {
+    return this.placeService.getDogFriendlyPlace(data);
   }
 }

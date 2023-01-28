@@ -23,8 +23,9 @@ export class PlaceService {
     private readonly httpSerivce: HttpService,
     private readonly googleAPISerive: GoogleAPIService,
   ) {}
-  async getDogFriendlyPlace(placeInfo: PlaceInfo) {
-    const { type, address } = placeInfo;
+  async getDogFriendlyPlace(data) {
+    const { type, address } = data.action.params;
+    
     try {
       //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
       const searchCoord = await this.googleAPISerive.getXYCoordinate(
