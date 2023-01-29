@@ -81,8 +81,8 @@ export class PlaceService {
             });
 
           return {
-            title: `[${dog_place.bizhourInfo.status}] ${dog_place.name}`,
-            description: dog_place.address,
+            title: dog_place.name,
+            description: `[${dog_place.bizhourInfo.status}]\n${dog_place.address}`,
             thumbnail: {
               imageUrl: dog_place.imageURL,
               link: {
