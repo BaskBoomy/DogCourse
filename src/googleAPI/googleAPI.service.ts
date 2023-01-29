@@ -17,8 +17,6 @@ export class GoogleAPIService{
                 })
             )
         );
-        console.log(process.env.GOOGLE_SECRET_KEY);
-        console.log(data);
         const location = data.results[0].geometry.location;
         return `${location.lng};${location.lat}`;
     }

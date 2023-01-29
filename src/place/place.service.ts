@@ -6,7 +6,7 @@ import { GoogleAPIService } from 'src/googleAPI/googleAPI.service';
 import { getQueryString } from 'src/helper/query';
 import { NaverOption, NaverOptionId, NaverSearchQueryParams, NaverSearchResult } from 'src/type/naver/types';
 import { KakaoBotButton, KakaoBotPetFriendlyResult, KakaoResponseBody } from 'src/type/kakao/types';
-import { concurrent, filter, map, pipe, take, toArray, toAsync } from '@fxts/core';
+import { concurrent, each, filter, map, pipe, sort, sortBy, take, toArray, toAsync } from '@fxts/core';
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
 import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
 
@@ -45,17 +45,21 @@ export class PlaceService {
       const petFriendlyPlaceList: KakaoBotPetFriendlyResult[] = await pipe(
         naverSearchResultList,
         toAsync,
-        map(
-          async (place: { id: string }) =>
+        map(async (place: { id: string;bizhourInfo:string }):Promise<NaverSearchResult> =>
             await firstValueFrom(this.httpSerivce.get(PLACE_INFO_URL(place.id)))
-              .then((res) => res.data)),
+              .then((res) => {
+                return {
+                  ...res.data,
+                  bizhourInfo: {
+                    id : place.bizhourInfo == '영업 중' ? 1 : place.bizhourInfo == '곧 영업 종료' ? 2 : place.bizhourInfo == '영업 종료' ? 3 : 4,
+                    status: place.bizhourInfo
+                  }
+                }
+              })),
         concurrent(100),
-        filter((place: NaverSearchResult) =>
-          place.options.find(
-            (d: NaverOption) => d.id == NaverOptionId.DOGFRIENDLY,
-          ),
-        ),
-        map((dog_place: NaverSearchResult): KakaoBotPetFriendlyResult => {
+        filter((place) => place.options.find((opt) => opt.id == NaverOptionId.DOGFRIENDLY)),
+        sortBy((place)=>place.bizhourInfo.id),
+        map((dog_place): KakaoBotPetFriendlyResult => {
           let buttons: KakaoBotButton[] = [
             {
               action: 'webLink',
@@ -77,7 +81,7 @@ export class PlaceService {
             });
 
           return {
-            title: dog_place.name,
+            title: `[${dog_place.bizhourInfo.status}] ${dog_place.name}`,
             description: dog_place.address,
             thumbnail: {
               imageUrl: dog_place.imageURL,
@@ -88,7 +92,7 @@ export class PlaceService {
             buttons,
           };
         }),
-        take(10),
+        // take(10),
         toArray,
       );
 
