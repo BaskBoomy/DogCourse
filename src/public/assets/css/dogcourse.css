@@ -40,36 +40,6 @@
   font-family:'NotoSansKR-thin';
   src:url('../font/NotoSansKR-thin.otf') format('truetype');
 }
-:root {
-  --blue: #79A9F5;
-  --indigo: #C45F90;
-  --purple: #A16AE8;
-  --pink: #ff214f;
-  --red: #F85C70;
-  --orange: #F3AF2C;
-  --yellow: #FAD02C;
-  --green: #A3C14A;
-  --teal: #20c997;
-  --cyan: #47D8E0;
-  --white: #fff;
-  --gray: #6c757d;
-  --gray-dark: #343a40;
-  --primary: #ff214f;
-  --secondary: #6c757d;
-  --success: #A3C14A;
-  --info: #47D8E0;
-  --warning: #FF8882;
-  --danger: #F85C70;
-  --light: #f8f9fa;
-  --dark: #343a40;
-  --breakpoint-xs: 0;
-  --breakpoint-sm: 576px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 992px;
-  --breakpoint-xl: 1200px;
-  /* --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; */
-}
 
 *,
 *::before,
