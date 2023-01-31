@@ -1,9 +1,16 @@
-import { quickReplies } from 'src/type/kakao/response_datas';
+type KaKaoBotActionType = 'webLink' | 'phone' | 'share' | 'message' | 'block';
+
+export const KakaoBlockId = {
+  '장소 정보' : '63d8c637c4105b65e9124c06',
+} as const;
+
 export type KakaoBotThumbnail = {
   imageUrl: string;
-  link?:{web:string};
+  link?:{web?:string;pc?:string;mobile?:string};
+  fixedRatio?:boolean;
+  width?:number;
+  height?:number;
 };
-type KaKaoBotActionType = 'webLink' | 'phone' | 'share' | 'message' | 'block';
 export type KakaoBotButton = {
   action: KaKaoBotActionType;
   label: string;
@@ -11,17 +18,25 @@ export type KakaoBotButton = {
   messageText?: string;
   phoneNumber?: string;
   blockId?: string;
+  extra?:{
+    [k:string]:string;
+  }
 };
-export type KakaoBotPetFriendlyResult = {
-  title: string;
-  description: string;
+export type KakaoBotBasicCard = {
+  title?: string;
+  description?: string;
   thumbnail: KakaoBotThumbnail;
-  buttons: KakaoBotButton[];
+  buttons?: KakaoBotButton[];
 };
 
-export type KakaoTemplateOutput = {
-  carousel?:{type:string,items:KakaoBotPetFriendlyResult[]};
+
+export type KakaoOutput = {
+  carousel?:{
+    type:string;
+    items:KakaoBotBasicCard[] | KakaoBotBasicCard[]
+  };
   simpleText?: {text:string};
+  basicCard?:KakaoBotBasicCard;
 }
 
 export type QuickReply = {
@@ -31,10 +46,22 @@ export type QuickReply = {
   extra:{type:string,address:string};
 }
 export type KakaoTemplate = {
-  outputs:KakaoTemplateOutput[];
+  outputs:KakaoOutput[];
   quickReplies?:QuickReply[];
 }
 export type KakaoResponseBody = {
   version:string;
   template:KakaoTemplate;
+}
+export type KaKaoChatBotParam = {
+  action:{
+    params:{
+      type?:string;
+      address?:string;
+      placeId?:string;
+    },
+    clientExtra?:{
+      [k:string]:string;
+    }
+  }
 }

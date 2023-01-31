@@ -1,12 +1,12 @@
+import { entries, reduce } from '@fxts/core';
+import { KakaoBlockId } from './../type/kakao/types';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios/dist';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { PlaceInfo } from 'src/dto/place/placeinfo';
+import { Injectable, Logger } from '@nestjs/common';
 import { GoogleAPIService } from 'src/googleAPI/googleAPI.service';
-import { getQueryString } from 'src/helper/query';
-import { NaverOption, NaverOptionId, NaverSearchQueryParams, NaverSearchResult } from 'src/type/naver/types';
-import { KakaoBotButton, KakaoBotPetFriendlyResult, KakaoResponseBody } from 'src/type/kakao/types';
-import { concurrent, each, filter, map, pipe, sort, sortBy, take, toArray, toAsync } from '@fxts/core';
+import { BizHour, NaverOptionId, NaverSearchResult } from 'src/type/naver/types';
+import { KakaoBotButton, KakaoBotBasicCard, KaKaoChatBotParam, KakaoResponseBody } from 'src/type/kakao/types';
+import { concurrent, filter, map, pipe, sortBy, toArray, toAsync } from '@fxts/core';
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
 import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
 
@@ -17,7 +17,7 @@ export class PlaceService {
     private readonly httpSerivce: HttpService,
     private readonly googleAPISerive: GoogleAPIService,
   ) {}
-  async getDogFriendlyPlace(data) {
+  async getDogFriendlyPlace(data:KaKaoChatBotParam):Promise<KakaoResponseBody> {
     const { type, address } = data.action.params;
     
     try {
@@ -40,9 +40,8 @@ export class PlaceService {
         await firstValueFrom(this.httpSerivce.get(NAVER_SEARCH_URL(param)))
           .then((res)=>res.data.result.place.list);
         
-      // this.logger.log('httpSerive testing..', naverSearchResultList);
       //반려동물 동반 가능한 장소 리스트
-      const petFriendlyPlaceList: KakaoBotPetFriendlyResult[] = await pipe(
+      const petFriendlyPlaceList: KakaoBotBasicCard[] = await pipe(
         naverSearchResultList,
         toAsync,
         map(async (place: { id: string;bizhourInfo:string }):Promise<NaverSearchResult> =>
@@ -59,27 +58,27 @@ export class PlaceService {
         concurrent(100),
         filter((place) => place.options.find((opt) => opt.id == NaverOptionId.DOGFRIENDLY)),
         sortBy((place)=>place.bizhourInfo.id),
-        map((dog_place): KakaoBotPetFriendlyResult => {
-          let buttons: KakaoBotButton[] = [
-            {
-              action: 'webLink',
-              label: '지도',
-              webLinkUrl: NAVER_MAP_URL(param.query, dog_place.id),
-            },
-          ];
-          dog_place.urlList[0] &&
-            buttons.push({
-              action: 'webLink',
-              label: '홈페이지',
-              webLinkUrl: dog_place.urlList[0].url,
-            });
+        map((dog_place): KakaoBotBasicCard => {
+          let buttons: KakaoBotButton[] = [];
           dog_place.phone &&
             buttons.push({
               action: 'phone',
               label: '전화',
               phoneNumber: dog_place.phone,
             });
-
+          
+          buttons.push({
+            action: 'block',
+            label: '자세히',
+            blockId: KakaoBlockId['장소 정보'],
+            extra:{
+              'placeId': String(dog_place.id)
+            }
+          });
+          buttons.push({
+            action: 'share',
+            label: '공유'
+          });
           return {
             title: dog_place.name,
             description: `[${dog_place.bizhourInfo.status}]\n${dog_place.address}`,
@@ -120,6 +119,55 @@ export class PlaceService {
     } catch (e) {
       console.log(e);
       return null;
+    }
+  }
+
+  async getPlaceInfo(data:KaKaoChatBotParam):Promise<KakaoResponseBody>{
+    try{
+      const placeId = data.action.clientExtra.placeId;
+      const placeInfo = 
+        await firstValueFrom(this.httpSerivce.get(PLACE_INFO_URL(placeId)))
+        .then((res)=>res.data);
+
+      const workHour = pipe(
+        placeInfo.bizHour as BizHour[],
+        filter((b)=>b.isDayOff == false),
+        map(b=>`[${b.type}] : ${b.startTime}~${b.endTime}\n`),
+        reduce((a,b)=>a+b),
+      )
+      
+      const responseBody:KakaoResponseBody = {
+        version: "2.0",
+        template: {
+          outputs: [
+            {
+              basicCard: {
+                title: `${placeInfo.name}\n${placeInfo.address}`,
+                description: `${placeInfo.description}\n\n⏲영업일\n${workHour}`,
+                thumbnail:{
+                  imageUrl:placeInfo.imageURL,
+                },
+                buttons:[
+                  {
+                    action:'webLink',
+                    label:'지도',
+                    webLinkUrl:NAVER_MAP_URL(placeInfo.name,placeInfo.id)
+                  }
+                ]
+              },
+            },
+            {
+              carousel:{
+                type:'basicCard',
+                items:placeInfo.images.map(img=>{return {thumbnail:img.url}})
+              }
+            }
+          ]
+        }
+      };
+      return responseBody;
+    }catch(e){
+      throw e;
     }
   }
 }
