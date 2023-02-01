@@ -1,4 +1,4 @@
-import { KakaoBlockId } from './../type/kakao/types';
+import { KakaoBlockId, KakaoOutput } from './../type/kakao/types';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios/dist';
 import { Injectable, Logger } from '@nestjs/common';
@@ -141,51 +141,40 @@ export class PlaceService {
         map(o=>`${o.name} `),
         reduce((a,b)=>a+b)
       )
-      const description = placeInfo.description.length > 230 ? 
-        `${placeInfo.description.slice(0,230)}...` : placeInfo.description;
-
       const simpleAddress = `${placeInfo.addressAbbr.split(' ')[0]}`;
-      console.log(simpleAddress);
-
+      
+      const outputs:KakaoOutput[] = [];
+      outputs.push({
+        basicCard:{
+          title: placeInfo.name,
+          description: `${placeInfo.address}\n💡옵션\n${option}\n\n⏲영업일\n${workHour}`,
+          thumbnail:{
+            imageUrl:placeInfo.imageURL,
+          },
+          buttons:[
+            {
+              action:'webLink',
+              label:'지도',
+              webLinkUrl:NAVER_MAP_URL(placeInfo.name,placeInfo.id)
+            }
+          ]
+        }
+      })
+      placeInfo.description.length > 0 && outputs.push({
+        simpleText:{
+          text: `📖저희는요~! \n${placeInfo.description}`,
+        }
+      });
+      outputs.push({
+        carousel:{
+          type:'basicCard',
+          items:placeInfo.images.map(img=>{return {thumbnail:img.url}})
+        }
+      })
       const responseBody:KakaoResponseBody = {
         version: "2.0",
         template: {
-          outputs: [
-            {
-              carousel:{
-                type:'basicCard',
-                items:[
-                  {
-                    title: placeInfo.name,
-                    description: `${placeInfo.address}\n💡옵션\n${option}\n\n⏲영업일\n${workHour}`,
-                    thumbnail:{
-                      imageUrl:placeInfo.imageURL,
-                    },
-                    buttons:[
-                      {
-                        action:'webLink',
-                        label:'지도',
-                        webLinkUrl:NAVER_MAP_URL(placeInfo.name,placeInfo.id)
-                      }
-                    ]
-                  },
-                  {
-                    title: '📖 저희는요~!',
-                    description: description,
-                    thumbnail:{
-                      imageUrl:'',
-                    }
-                  }
-                ]
-              },
-            },
-            {
-              carousel:{
-                type:'basicCard',
-                items:placeInfo.images.map(img=>{return {thumbnail:img.url}})
-              }
-            }
-          ],
+          outputs,
           quickReplies:[
             {
               label: `주변 카페`,
