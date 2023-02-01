@@ -7,10 +7,6 @@ export type NaverImage = {
   url: string;
 };
 
-// const PARK= 2;
-// const RESERVATE = 3;
-// const GROUPSEAT = 13;
-// const DOGFRIENDLY = 15;
 export const NaverOptionId = {
   PARK:2,
   RESERVATE:3,

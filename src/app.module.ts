@@ -1,3 +1,4 @@
+import { ReactionModule } from './reaction/reaction.module';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -7,6 +8,7 @@ import { PlaceModule } from './place/place.module';
 @Module({
   imports: [
     PlaceModule,
+    ReactionModule,
     ConfigModule.forRoot()
   ],
   controllers: [AppController],

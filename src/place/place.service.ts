@@ -1,24 +1,25 @@
-import { entries, reduce } from '@fxts/core';
 import { KakaoBlockId } from './../type/kakao/types';
 import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios/dist';
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleAPIService } from 'src/googleAPI/googleAPI.service';
-import { BizHour, NaverOptionId, NaverSearchResult } from 'src/type/naver/types';
+import { BizHour, NaverOption, NaverOptionId, NaverSearchResult } from 'src/type/naver/types';
 import { KakaoBotButton, KakaoBotBasicCard, KaKaoChatBotParam, KakaoResponseBody } from 'src/type/kakao/types';
-import { concurrent, filter, map, pipe, sortBy, toArray, toAsync } from '@fxts/core';
+import { concurrent, filter, map, pipe, sortBy, toArray, toAsync,reduce } from '@fxts/core';
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
 import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
 
 @Injectable()
 export class PlaceService {
-  private readonly logger = new Logger(PlaceService.name);
   constructor(
     private readonly httpSerivce: HttpService,
     private readonly googleAPISerive: GoogleAPIService,
   ) {}
   async getDogFriendlyPlace(data:KaKaoChatBotParam):Promise<KakaoResponseBody> {
-    const { type, address } = data.action.params;
+    const { type, address } = 
+      Object.keys(data.action.clientExtra).length !== 0 ? 
+        data.action.clientExtra : data.action.params;
+    console.log(address,type);
     
     try {
       //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
@@ -135,23 +136,45 @@ export class PlaceService {
         map(b=>`[${b.type}] : ${b.startTime}~${b.endTime}\n`),
         reduce((a,b)=>a+b),
       )
-      
+      const option = pipe(
+        placeInfo.options as NaverOption[],
+        map(o=>`${o.name} `),
+        reduce((a,b)=>a+b)
+      )
+      const description = placeInfo.description.length > 230 ? 
+        `${placeInfo.description.slice(0,230)}...` : placeInfo.description;
+
+      const simpleAddress = `${placeInfo.addressAbbr.split(' ')[0]}`;
+      console.log(simpleAddress);
+
       const responseBody:KakaoResponseBody = {
         version: "2.0",
         template: {
           outputs: [
             {
-              basicCard: {
-                title: `${placeInfo.name}\n${placeInfo.address}`,
-                description: `${placeInfo.description}\n\n⏲영업일\n${workHour}`,
-                thumbnail:{
-                  imageUrl:placeInfo.imageURL,
-                },
-                buttons:[
+              carousel:{
+                type:'basicCard',
+                items:[
                   {
-                    action:'webLink',
-                    label:'지도',
-                    webLinkUrl:NAVER_MAP_URL(placeInfo.name,placeInfo.id)
+                    title: placeInfo.name,
+                    description: `${placeInfo.address}\n💡옵션\n${option}\n\n⏲영업일\n${workHour}`,
+                    thumbnail:{
+                      imageUrl:placeInfo.imageURL,
+                    },
+                    buttons:[
+                      {
+                        action:'webLink',
+                        label:'지도',
+                        webLinkUrl:NAVER_MAP_URL(placeInfo.name,placeInfo.id)
+                      }
+                    ]
+                  },
+                  {
+                    title: '📖 저희는요~!',
+                    description: description,
+                    thumbnail:{
+                      imageUrl:'',
+                    }
                   }
                 ]
               },
@@ -161,6 +184,18 @@ export class PlaceService {
                 type:'basicCard',
                 items:placeInfo.images.map(img=>{return {thumbnail:img.url}})
               }
+            }
+          ],
+          quickReplies:[
+            {
+              label: `주변 카페`,
+              action: "message",
+              messageText: `${simpleAddress} 카페`,
+            },
+            {
+              label: `주변 음식점`,
+              action: "message",
+              messageText: `${simpleAddress} 음식점`
             }
           ]
         }

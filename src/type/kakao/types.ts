@@ -36,14 +36,16 @@ export type KakaoOutput = {
     items:KakaoBotBasicCard[] | KakaoBotBasicCard[]
   };
   simpleText?: {text:string};
+  simpleImage?: {imageUrl:string;altText:string;};
   basicCard?:KakaoBotBasicCard;
 }
 
 export type QuickReply = {
   label:string;
   action:string;
-  blockId:string;
-  extra:{type:string,address:string};
+  blockId?:string;
+  extra?:{type:string,address:string};
+  messageText?:string;
 }
 export type KakaoTemplate = {
   outputs:KakaoOutput[];
@@ -54,6 +56,10 @@ export type KakaoResponseBody = {
   template:KakaoTemplate;
 }
 export type KaKaoChatBotParam = {
+  intent:{
+    id:string;
+    name:string;
+  };
   action:{
     params:{
       type?:string;

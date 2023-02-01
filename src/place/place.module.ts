@@ -1,4 +1,3 @@
-import { HttpService } from '@nestjs/axios/dist';
 import { HttpModule } from '@nestjs/axios';
 import { PlaceService } from './place.service';
 import { Module } from '@nestjs/common';
