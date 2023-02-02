@@ -36,9 +36,7 @@ export class PlaceService {
     private readonly httpSerivce: HttpService,
     private readonly googleAPISerive: GoogleAPIService,
   ) {}
-  async getDogFriendlyPlace(
-    data: KaKaoChatBotParam,
-  ): Promise<KakaoResponseBody> {
+  async getDogFriendlyPlace(data: KaKaoChatBotParam):Promise<KakaoResponseBody> {
     try {
       const { type, address } =
         Object.keys(data.action.clientExtra).length !== 0
@@ -70,16 +68,13 @@ export class PlaceService {
         naverSearchResultList,
         toAsync,
         map(
-          async (place: {
-            id: string;
-            bizhourInfo: string;
-          }): Promise<NaverSearchResult> =>
+          async (place: NaverSearchResult): Promise<NaverSearchResult> =>
             await firstValueFrom(
               this.httpSerivce.get(PLACE_INFO_URL(place.id)),
             ).then((res) => {
               return {
                 ...res.data,
-                bizhourInfo: {
+                workingStatus: {
                   id:
                     place.bizhourInfo == '영업 중'
                       ? 1
@@ -97,7 +92,7 @@ export class PlaceService {
         filter((place) =>
           place.options.find((opt) => opt.id == NaverOptionId.DOGFRIENDLY),
         ),
-        sortBy((place) => place.bizhourInfo.id),
+        sortBy((place) => place.workingStatus.id),
         toArray,
       );
 
@@ -127,7 +122,7 @@ export class PlaceService {
           });
           return {
             title: dog_place.name,
-            description: `[${dog_place.bizhourInfo.status}]\n${dog_place.address}`,
+            description: `[${dog_place.workingStatus.status}]\n${dog_place.address}`,
             thumbnail: {
               imageUrl: dog_place.imageURL,
               link: {
@@ -141,6 +136,7 @@ export class PlaceService {
         toArray,
       );
 
+      //좌표값으로 지도에서 조회
       let position = pipe(
         petFriendlyPlaceList,
         filter((p) => p.name),

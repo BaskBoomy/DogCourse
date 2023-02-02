@@ -15,22 +15,9 @@ export class AppController {
 
   @Get('map')
   map(@Res() res: Response){
-    const query = res.req.query;
-    const position = pipe(
-      [...entries(query)],
-      reject(p=>p['center']),
-      map(([key,value]:[string,string])=>
-        [key,[parseFloat(value.split(',')[0]),parseFloat(value.split(',')[1])]] as [string, [number, number]]),
-      fromEntries
-    )
     return res.render(
       'map',
-      {
-        clientId:process.env.NAVER_CLIENT_ID,
-        lat:(query.center as string).split(';')[1],
-        lng:(query.center as string).split(';')[0],
-        position:JSON.stringify(position)
-      },
+      this.appService.getMapData(res.req)
     );
   }
 }
