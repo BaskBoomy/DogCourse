@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>DogCourse Map</title>
+    <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId={{clientId}}"></script>
+</head>
+<body>
+<div id="map" style="width:100%;height:98vh;"></div>
+
+<script>
+var HOME_PATH = window.HOME_PATH || '.';
+var MARKER_SPRITE_POSITION = {{{position}}};
+var map = new naver.maps.Map('map', {
+    center: new naver.maps.LatLng({{lat}}, {{lng}}),
+    zoom: 15
+});
+
+var bounds = map.getBounds(),
+    southWest = bounds.getSW(),
+    northEast = bounds.getNE(),
+    lngSpan = northEast.lng() - southWest.lng(),
+    latSpan = northEast.lat() - southWest.lat();
+
+var markers = [],infoWindows = [];
+for (var key in MARKER_SPRITE_POSITION) {
+
+    var position = new naver.maps.LatLng(MARKER_SPRITE_POSITION[key][0],MARKER_SPRITE_POSITION[key][1]);
+
+    var marker = new naver.maps.Marker({
+        map: map,
+        position: position,
+        title: key,
+        icon: {
+            url: 'assets/imgs/map-37.png',
+            size: new naver.maps.Size(37, 37),
+            anchor: new naver.maps.Point(15, 37),
+        },
+        zIndex: 100
+    });
+
+    var infoWindow = new naver.maps.InfoWindow({
+        content: '<div style="width:150px;text-align:center;padding:10px;"><b>'+ key +'</b></div>'
+    });
+
+    markers.push(marker);
+    infoWindows.push(infoWindow);
+};
+
+naver.maps.Event.addListener(map, 'idle', function() {
+    updateMarkers(map, markers);
+});
+
+function updateMarkers(map, markers) {
+
+    var mapBounds = map.getBounds();
+    var marker, position;
+
+    for (var i = 0; i < markers.length; i++) {
+
+        marker = markers[i]
+        position = marker.getPosition();
+
+        if (mapBounds.hasLatLng(position)) {
+            showMarker(map, marker);
+        } else {
+            hideMarker(map, marker);
+        }
+    }
+}
+
+function showMarker(map, marker) {
+
+    if (marker.setMap()) return;
+    marker.setMap(map);
+}
+
+function hideMarker(map, marker) {
+
+    if (!marker.setMap()) return;
+    marker.setMap(null);
+}
+
+// 해당 마커의 인덱스를 seq라는 클로저 변수로 저장하는 이벤트 핸들러를 반환합니다.
+function getClickHandler(seq) {
+    return function(e) {
+        var marker = markers[seq],
+            infoWindow = infoWindows[seq];
+
+        if (infoWindow.getMap()) {
+            infoWindow.close();
+        } else {
+            infoWindow.open(map, marker);
+        }
+    }
+}
+
+for (var i=0, ii=markers.length; i<ii; i++) {
+    naver.maps.Event.addListener(markers[i], 'click', getClickHandler(i));
+}
+</script>
+
+</body>
+</html>

@@ -35,7 +35,9 @@ export type NaverSearchResult = {
   bizhourInfo:
     {id:1;status:'영업 중'} | {id:2;status:'곧 영업 중료'} | {id:3;status:'영업 종료'} | {id:4; status:'오늘 휴무'};
 };
-
+export type QueryParam = {
+  [k:string]:any;
+}
 export type NaverSearchQueryParams = {
   query: string;
   type: string;
