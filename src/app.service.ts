@@ -10,6 +10,14 @@ export class AppService {
   getMapData({ query }: Request): NaverMapData {
     try {
       console.log(query);
+      if(Object.keys(query).length == 0 ){
+        return {
+          clientId: process.env.NAVER_CLIENT_ID,
+          lat:'37.53894081054399',
+          lng:'127.05320190236814',
+          position: JSON.stringify({}),
+        }
+      }
       const [lat, lng] = (Object.values(query)[0] as string||'').split(',');
       console.log(lat, lng);
       const position = pipe(
