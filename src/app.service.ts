@@ -9,7 +9,9 @@ type NaverMapData = {
 export class AppService {
   getMapData({ query }: Request): NaverMapData {
     try {
-      const [lat, lng] = (Object.values(query)[0] as string).split(',');
+      console.log(query);
+      const [lat, lng] = (Object.values(query)[0] as string||'').split(',');
+      console.log(lat, lng);
       const position = pipe(
         [...entries(query)],
         map(
