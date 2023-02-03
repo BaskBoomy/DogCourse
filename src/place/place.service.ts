@@ -155,12 +155,12 @@ export class PlaceService {
         thumbnail: {
           imageUrl: `https://res.cloudinary.com/dcizjmtey/image/upload/v1675331825/map-small_pghzpa.png`,
         },
-        description:'✅ 검색결과를 지도로 한눈에 볼 수 있어요!',
+        description:'✅ 검색결과를 지도로 한눈에 볼 수 있어요!\n✅ 목적지까지 예상시간을 알 수 있어요!',
         buttons: [
           {
             action: 'webLink',
             label: '지도로 보기',
-            webLinkUrl: `http://dev.dogcourse.net/map?center=${searchCoord}&${getQueryString(
+            webLinkUrl: `http://api.dogcourse.net/map?center=${searchCoord}&${getQueryString(
               position,
             )}`,
           },
@@ -175,7 +175,7 @@ export class PlaceService {
                 {
                   carousel: {
                     type: 'basicCard',
-                    items: [showMap,...mappedKakaoResponse],
+                    items: [...mappedKakaoResponse,showMap],
                   },
                 },
               ],

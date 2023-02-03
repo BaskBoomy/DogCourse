@@ -59,7 +59,7 @@ function getCurrentPosition() {
     })
 }
 async function getTrafficInfo(params) {
-    const response = await fetch(`http://dev.dogcourse.net/place/getTrafficInfo`,{
+    const response = await fetch(`http://api.dogcourse.net/place/getTrafficInfo`,{
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
