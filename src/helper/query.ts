@@ -1,9 +1,12 @@
 import { pipe,entries,map,join } from "@fxts/core";
-import { NaverSearchQueryParams, QueryParam } from "src/type/naver/types";
+import { QueryParam } from "src/type/naver/types";
 
 export const getQueryString = (param:QueryParam):string => pipe(
     param,
     entries,
-    map(join('=')),
+    map((([k,v]:[string,string])=>{
+        k=k.replace('&',',');
+        return `${k}=${v}`;
+    })),
     join('&')
 )

@@ -13,9 +13,10 @@ export class AppService {
         (query.center as string).split(';')[1],
         (query.center as string).split(';')[0],
       ];
+      console.log(query);
       const position = pipe(
         [...entries(query)],
-        reject((p) => p['center']),
+        reject(([key,_]) => key=='center'),
         map(
           ([key, value]: [string, string]) =>
             [key,[parseFloat(value.split(',')[0]),parseFloat(value.split(',')[1])]] as [string, [number, number]],

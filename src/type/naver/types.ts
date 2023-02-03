@@ -8,10 +8,10 @@ export type NaverImage = {
 };
 
 export const NaverOptionId = {
-  PARK:2,
-  RESERVATE:3,
-  GROUPSEAT:13,
-  DOGFRIENDLY:15
+  PARK: 2,
+  RESERVATE: 3,
+  GROUPSEAT: 13,
+  DOGFRIENDLY: 15,
 } as const;
 
 export type NaverOption = {
@@ -32,13 +32,16 @@ export type NaverSearchResult = {
   imageURL: string;
   options: NaverOption[];
   naverMapURL: string;
-  bizhourInfo:'영업 중'|'곧 영업 종료'|'영업 종료'|'오늘 휴무';
-  workingStatus :
-    {id:1;status:'영업 중'} | {id:2;status:'곧 영업 종료'} | {id:3;status:'영업 종료'} | {id:4; status:'오늘 휴무'};
+  bizhourInfo: '영업 중' | '곧 영업 종료' | '영업 종료' | '오늘 휴무';
+  workingStatus:
+    | { id: 1; status: '영업 중' }
+    | { id: 2; status: '곧 영업 종료' }
+    | { id: 3; status: '영업 종료' }
+    | { id: 4; status: '오늘 휴무' };
 };
 export type QueryParam = {
-  [k:string]:any;
-}
+  [k: string]: any;
+};
 export type NaverSearchQueryParams = {
   query: string;
   type: string;
@@ -46,12 +49,49 @@ export type NaverSearchQueryParams = {
   displayCount: number;
   isPlaceRecommendationReplace: boolean;
   lang: string;
-}
+};
 
 export type BizHour = {
-  type:string;
-  startTime:string;
-  endTime:string;
-  description:string;
-  isDayOff:boolean;
-}
+  type: string;
+  startTime: string;
+  endTime: string;
+  description: string;
+  isDayOff: boolean;
+};
+
+export interface NaverTrafficParams {
+  key:string;
+  start: string;
+  goal: string;
+  departureTime:string;
+  crs: string;
+  mode: string;
+  rptype: 4;
+  cartype: 1;
+  fueltype: 1;
+  st: 1;
+  o: 'all';
+  l:string;
+  lang: string;
+};
+
+export type Transport = Pick<
+  NaverTrafficParams,
+  'departureTime' |'start' | 'goal' | 'crs' | 'mode' | 'lang'
+>;
+export type Car = Pick<
+  NaverTrafficParams,
+  'start' | 'goal' | 'crs' | 'mode' | 'rptype' | 'cartype' | 'fueltype' | 'lang'
+>;
+export type Walk = Pick<
+  NaverTrafficParams,
+  'l' | 'st' | 'o' | 'lang'
+>;
+export type NaverTrafficResult = {
+  isTooClose: boolean;
+  start: string;
+  goal: string;
+  duration?: number;
+  arrivalTime?: Date;
+  taxiFare?:number;
+};

@@ -5,9 +5,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GoogleAPIService } from 'src/googleAPI/googleAPI.service';
 import {
   BizHour,
+  Car,
   NaverOption,
   NaverOptionId,
   NaverSearchResult,
+  NaverTrafficParams,
+  NaverTrafficResult,
+  Transport,
+  Walk,
 } from 'src/type/naver/types';
 import {
   KakaoBotButton,
@@ -29,6 +34,7 @@ import {
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
 import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
 import { getQueryString } from 'src/helper/query';
+import { MapToCarResult, MapToTransportResult, MapToWalkResult } from 'src/helper/mapping';
 
 @Injectable()
 export class PlaceService {
@@ -144,6 +150,7 @@ export class PlaceService {
         fromEntries,
       );
 
+      console.log(position);
       const showMap: KakaoBotBasicCard = {
         thumbnail: {
           imageUrl: `https://res.cloudinary.com/dcizjmtey/image/upload/v1675331825/map-small_pghzpa.png`,
@@ -153,7 +160,7 @@ export class PlaceService {
           {
             action: 'webLink',
             label: '지도로 보기',
-            webLinkUrl: `http://dev.dogcourse.net/map?center=${searchCoord}&${getQueryString(
+            webLinkUrl: `https://1319-221-148-27-89.jp.ngrok.io/map?center=${searchCoord}&${getQueryString(
               position,
             )}`,
           },
@@ -168,7 +175,7 @@ export class PlaceService {
                 {
                   carousel: {
                     type: 'basicCard',
-                    items: [...mappedKakaoResponse, showMap],
+                    items: [showMap,...mappedKakaoResponse],
                   },
                 },
               ],
@@ -264,5 +271,68 @@ export class PlaceService {
     } catch (e) {
       throw e;
     }
+  }
+
+  async getTrafficInfo(params:NaverTrafficParams[]):Promise<any>{
+    try{
+      const transport = await pipe(
+        params,
+        toAsync,
+        map(async (param)=> {
+          const transportParam:Transport = {
+            start:param.start, 
+            goal:param.goal, 
+            departureTime:'2023-02-03T15:25:34',
+            crs:param.crs, 
+            mode:param.mode,  
+            lang:param.lang}
+          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/transit/directions/point-to-point?${getQueryString(transportParam)}`))
+          .then((res)=>MapToTransportResult(param,res.data))}),
+        concurrent(params.length),
+        toArray
+      )
+  
+      const car = await pipe(
+        params,
+        toAsync,
+        map(async (param)=>{
+          const carParam:Car = {
+            start:param.start, 
+            goal:param.goal, 
+            crs:param.crs, 
+            mode:param.mode, 
+            rptype:param.rptype, 
+            cartype:param.cartype, 
+            fueltype:param.fueltype, 
+            lang:param.lang}
+          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/dir/findcar?${getQueryString(carParam)}`))
+            .then((res)=>MapToCarResult(param,res.data))}),
+        concurrent(params.length),
+        toArray
+      )
+
+      const walk = await pipe(
+        params,
+        toAsync,
+        map(async (param)=>{
+          const carParam:Walk = {
+            l:param.l, 
+            st:param.st, 
+            o:param.o, 
+            lang:param.lang}
+          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/dir/findwalk?${getQueryString(carParam)}`))
+            .then((res)=>MapToWalkResult(param,res.data))}),
+        concurrent(params.length),
+        toArray
+      )
+      return {
+        transport,
+        car,
+        walk
+      };
+    }catch(e){
+      throw e;
+    }
+    
   }
 }
