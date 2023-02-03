@@ -16,7 +16,7 @@ export class AppService {
         [...entries(query)],
         map(
           ([key, value]: [string, string]) =>
-            [key,[parseFloat(value.split(',')[0]),parseFloat(value.split(',')[1])]] as [string, [number, number]],
+            [key,[parseFloat(value.split(',')[0]),parseFloat(value.split(',')[1])]] as [string, [number, number]]
         ),
         fromEntries,
       );
