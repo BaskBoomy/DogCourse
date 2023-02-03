@@ -160,7 +160,7 @@ export class PlaceService {
           {
             action: 'webLink',
             label: '지도로 보기',
-            webLinkUrl: `https://1319-221-148-27-89.jp.ngrok.io/map?center=${searchCoord}&${getQueryString(
+            webLinkUrl: `http://dev.dogcourse.net/map?center=${searchCoord}&${getQueryString(
               position,
             )}`,
           },
