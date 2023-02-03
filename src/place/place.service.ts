@@ -30,6 +30,7 @@ import {
   toAsync,
   reduce,
   fromEntries,
+  take,
 } from '@fxts/core';
 import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
 import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
@@ -138,7 +139,7 @@ export class PlaceService {
             buttons,
           };
         }),
-        // take(10),
+        take(25),
         toArray,
       );
 
@@ -150,7 +151,6 @@ export class PlaceService {
         fromEntries,
       );
 
-      console.log(position);
       const showMap: KakaoBotBasicCard = {
         thumbnail: {
           imageUrl: `https://res.cloudinary.com/dcizjmtey/image/upload/v1675331825/map-small_pghzpa.png`,
@@ -160,13 +160,14 @@ export class PlaceService {
           {
             action: 'webLink',
             label: '지도로 보기',
-            webLinkUrl: `http://api.dogcourse.net/map?center=${searchCoord}&${getQueryString(
+            webLinkUrl: `https://api.dogcourse.net/map?${getQueryString(
               position,
             )}`,
           },
         ],
       };
 
+      console.log(petFriendlyPlaceList.length);
       const responseBody: KakaoResponseBody = {
         version: '2.0',
         template: petFriendlyPlaceList

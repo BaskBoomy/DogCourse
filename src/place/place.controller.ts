@@ -10,7 +10,6 @@ export class PlaceController {
 
   @Post('getDogFriendlyPlace')
   getDogFriendlyPlace(@Body() data:KaKaoChatBotParam): Promise<KakaoResponseBody> {
-    console.log(data);
     return this.placeService.getDogFriendlyPlace(data);
   }
 
