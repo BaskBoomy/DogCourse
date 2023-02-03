@@ -59,7 +59,7 @@ function getCurrentPosition() {
     })
 }
 async function getTrafficInfo(params) {
-    const response = await fetch(`https://1319-221-148-27-89.jp.ngrok.io/place/getTrafficInfo`,{
+    const response = await fetch(`http://dev.dogcourse.net/place/getTrafficInfo`,{
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
