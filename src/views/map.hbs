@@ -6,107 +6,40 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="description" content="반려동물 동반 장소 지도" />
     <title>DogCourse Map</title>
+    <link rel="icon" type="image/x-icon" href="assets/imgs/dog-face.png">
+    <link rel="stylesheet" type="text/css" href="assets/css/info-box.css">
     <script src="https://unpkg.com/fxjs/dist/fx.js"></script>
     <script type="text/javascript"
         src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId={{clientId}}"></script>
     <script type="text/javascript" src="assets/js/dogcourse.js"></script>
+    <script>
+        let type = "{{type}}";
+        let address = "{{address}}";
+        let centerLat = "{{centerLat}}";
+        let centerLng = "{{centerLng}}";
+    </script>
 </head>
-
 <body>
-    <div id="map" style="width:100%;height:98vh;"></div>
+    <div id="map" style="width:100%;height:98vh;position:absolute"></div>
+    <div id="loader"></div>
+    <div id="placeInfoBox" class="place-info-box">
+        <div class="place-info-box-top">
+            <div class="place-info-boxtop-left">
+                <a id="placeLink" href="">
+                    <div id="placeName" class="title">name</div>
+                    <div id="placeAddress" class="subtitle">address</div>
+                </a>
+            </div>
+            <div class="place-info-boxtop-right">
+                <a id="phoneLink" href="" target="_blank" class="icon-link"><img src="assets/imgs/phone-18.png" alt="icon"/></a>
+                <a id="shareLink" href="" target="_blank" class="icon-link"><img src="assets/imgs/share-18.png" alt="icon"/></a>
+                <a id="naverMapLink" href="" target="_blank" class="icon-link"><img src="assets/imgs/navigator-18.png" alt="icon"/></a>
+            </div>
+        </div>
+        <div id="imageSlideBox" class="place-info-box-middle">
+        </div>
+    </div>
 </body>
-<script>
-
-    var MARKER_SPRITE_POSITION = {{{ position }}};
-    var map = new naver.maps.Map('map', {
-        center: new naver.maps.LatLng({{ lat }}, {{ lng }}),
-        zoom: 15
-    });
-    var markers = [], infoWindows = [];
-
-    getCurrentPosition()
-        .then(({ coords }) => {
-            var position = new naver.maps.LatLng(coords.latitude, coords.longitude);
-            var marker = new naver.maps.Marker({
-                map: map,
-                position: position,
-                title: '내위치',
-                icon: {
-                    url: 'assets/imgs/map-me.png',
-                    size: new naver.maps.Size(37, 37),
-                    anchor: new naver.maps.Point(15, 37),
-                },
-                zIndex: 100
-            });
-
-            var infoWindow = new naver.maps.InfoWindow({
-                content: '<div style="width:150px;text-align:center;padding:10px;">내위치</div>'
-            });
-
-            markers.push(marker);
-            infoWindows.push(infoWindow);
-
-            let params = [];
-            for (var key in MARKER_SPRITE_POSITION) {
-                params.push({
-                    key,
-                    start: `${coords.longitude},${coords.latitude}`,
-                    goal: `${MARKER_SPRITE_POSITION[key][1]},${MARKER_SPRITE_POSITION[key][0]}`,
-                    l: `${coords.longitude},${coords.latitude};${MARKER_SPRITE_POSITION[key][1]},${MARKER_SPRITE_POSITION[key][0]}`,
-                    crs: 'EPSG:4326',
-                    mode: 'TIME',
-                    rptype: 4,
-                    cartype: 1,
-                    fueltype: 1,
-                    st: 1,
-                    o: 'all',
-                    lang: 'ko',
-                })
-            }
-            let index = 0;
-            getTrafficInfo(params).then((traffic) => {
-                for (var key in MARKER_SPRITE_POSITION) {
-                    var position = new naver.maps.LatLng(MARKER_SPRITE_POSITION[key][0], MARKER_SPRITE_POSITION[key][1]);
-
-                    var marker = new naver.maps.Marker({
-                        map: map,
-                        position: position,
-                        title: key,
-                        icon: {
-                            url: 'assets/imgs/map-37.png',
-                            size: new naver.maps.Size(37, 37),
-                            anchor: new naver.maps.Point(15, 37),
-                        },
-                        zIndex: 100
-                    });
-                    //차 : 자동차 시간,예상 택시비
-                    //대중교통 : 시간, 도착시간 (duration 0이면 도착시간 없음)
-                    //도보 : 시간
-                    var infoWindow = new naver.maps.InfoWindow({
-                        content: `
-                        <div style="width:170px;padding:10px;">
-                            <p style="text-align:center;"><b>${key}</b></p>
-                            <p style="text-align:center;">예상소요시간</p>
-                            <p>🚘 ${traffic.car[index].duration}분 <small>(택시:${traffic.car[index].taxiFare}원)</small></p>
-                            <p>🚍 ${traffic.transport[index].duration}분</p>
-                            <p>&nbsp;🚶 ${traffic.walk[index].duration}분</p>
-                        </div>`
-                    });
-
-                    markers.push(marker);
-                    infoWindows.push(infoWindow);
-                    index++;
-                };
-
-                naver.maps.Event.addListener(map, 'idle', function () {
-                    updateMarkers(map, markers);
-                });
-
-                for (var i = 0, ii = markers.length; i < ii; i++) {
-                    naver.maps.Event.addListener(markers[i], 'click', getClickHandler(i));
-                }
-            });
-        });
-</script>
 </html>

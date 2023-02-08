@@ -1,10 +1,10 @@
-import { ReactionModule } from './reaction/reaction.module';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerMiddleware } from './middleware/logger';
 import { PlaceModule } from './place/place.module';
+import { ReactionModule } from './reaction/reaction.module';
 @Module({
   imports: [
     PlaceModule,

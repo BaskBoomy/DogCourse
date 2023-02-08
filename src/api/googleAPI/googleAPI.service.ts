@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios/dist';
 import { Injectable, Logger } from '@nestjs/common';
 import { catchError, firstValueFrom } from 'rxjs';
-import { GOOGLE_GEO_URL } from 'src/API/api';
+import { GOOGLE_GEO_URL } from 'src/helper/url';
 
 @Injectable()
 export class GoogleAPIService{

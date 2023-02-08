@@ -1,47 +1,31 @@
-import { KakaoBlockId, KakaoOutput } from './../type/kakao/types';
-import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios/dist';
-import { Injectable, Logger } from '@nestjs/common';
-import { GoogleAPIService } from 'src/googleAPI/googleAPI.service';
-import {
-  BizHour,
-  Car,
-  NaverOption,
-  NaverOptionId,
-  NaverSearchResult,
-  NaverTrafficParams,
-  NaverTrafficResult,
-  Transport,
-  Walk,
-} from 'src/type/naver/types';
-import {
-  KakaoBotButton,
-  KakaoBotBasicCard,
-  KaKaoChatBotParam,
-  KakaoResponseBody,
-} from 'src/type/kakao/types';
 import {
   concurrent,
-  filter,
-  map,
-  pipe,
-  sortBy,
-  toArray,
-  toAsync,
-  reduce,
-  fromEntries,
-  take,
+  filter, map,
+  pipe, reduce, take, toArray, toAsync
 } from '@fxts/core';
-import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
-import { NAVER_MAP_URL, NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/API/api';
+import { HttpService } from '@nestjs/axios/dist';
+import { Injectable } from '@nestjs/common';
+import { firstValueFrom } from 'rxjs';
+import { NaverAPIService } from 'src/api/naverAPI/naverAPI.service';
+import { MapToKakaoTemplateResult } from 'src/helper/mapping';
 import { getQueryString } from 'src/helper/query';
-import { MapToCarResult, MapToTransportResult, MapToWalkResult } from 'src/helper/mapping';
+import { NAVER_MAP_URL, PLACE_INFO_URL } from 'src/helper/url';
+import { quickReplies, textResponse } from 'src/type/kakao/response_datas';
+import {
+  KakaoBotBasicCard,
+  KaKaoChatBotParam,
+  KakaoResponseBody
+} from 'src/type/kakao/types';
+import {
+  BizHour, NaverMapResult, NaverOption, NaverSearchParam
+} from 'src/type/naver/types';
+import { KakaoOutput } from './../type/kakao/types';
 
 @Injectable()
 export class PlaceService {
   constructor(
     private readonly httpSerivce: HttpService,
-    private readonly googleAPISerive: GoogleAPIService,
+    private readonly naverAPIService: NaverAPIService
   ) {}
   async getDogFriendlyPlace(data: KaKaoChatBotParam):Promise<KakaoResponseBody> {
     try {
@@ -51,105 +35,22 @@ export class PlaceService {
           : data.action.params;
       console.log(address, type);
 
-      //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
-      const searchCoord = await this.googleAPISerive.getXYCoordinate(
-        address as string,
-      );
-
-      const param = {
-        query: type,
-        type: 'all',
-        searchCoord,
-        displayCount: 100,
-        isPlaceRecommendationReplace: true,
-        lang: 'ko',
-      };
-
-      //전체 검색 결과
-      const naverSearchResultList = await firstValueFrom(
-        this.httpSerivce.get(NAVER_SEARCH_URL(param)),
-      ).then((res) => res.data.result.place.list);
-
-      //반려동물 동반 가능한 장소 리스트
-      const petFriendlyPlaceList: NaverSearchResult[] = await pipe(
-        naverSearchResultList,
-        toAsync,
-        map(
-          async (place: NaverSearchResult): Promise<NaverSearchResult> =>
-            await firstValueFrom(
-              this.httpSerivce.get(PLACE_INFO_URL(place.id)),
-            ).then((res) => {
-              return {
-                ...res.data,
-                workingStatus: {
-                  id:
-                    place.bizhourInfo == '영업 중'
-                      ? 1
-                      : place.bizhourInfo == '곧 영업 종료'
-                      ? 2
-                      : place.bizhourInfo == '영업 종료'
-                      ? 3
-                      : 4,
-                  status: place.bizhourInfo,
-                },
-              };
-            }),
-        ),
-        concurrent(100),
-        filter((place) =>
-          place.options.find((opt) => opt.id == NaverOptionId.DOGFRIENDLY),
-        ),
-        sortBy((place) => place.workingStatus.id),
-        toArray,
-      );
+      //반려동물 동반 장소 리스트
+      const petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address);
 
       //카카오 챗봇 template으로 데이터 mapping
       const mappedKakaoResponse: KakaoBotBasicCard[] = pipe(
         petFriendlyPlaceList,
-        map((dog_place): KakaoBotBasicCard => {
-          let buttons: KakaoBotButton[] = [];
-          dog_place.phone &&
-            buttons.push({
-              action: 'phone',
-              label: '전화',
-              phoneNumber: dog_place.phone,
-            });
-
-          buttons.push({
-            action: 'block',
-            label: '자세히',
-            blockId: KakaoBlockId['장소 정보'],
-            extra: {
-              placeId: String(dog_place.id),
-            },
-          });
-          buttons.push({
-            action: 'share',
-            label: '공유',
-          });
-          return {
-            title: dog_place.name,
-            description: `[${dog_place.workingStatus.status}]\n${dog_place.address}`,
-            thumbnail: {
-              imageUrl: dog_place.imageURL,
-              link: {
-                web: NAVER_MAP_URL(param.query, dog_place.id),
-              },
-            },
-            buttons,
-          };
-        }),
+        map((dog_place)=>MapToKakaoTemplateResult(dog_place,type)),
         take(25),
         toArray,
       );
 
-      //좌표값으로 지도에서 조회
-      let position = pipe(
-        petFriendlyPlaceList,
-        filter((p) => p.name),
-        map((p) => [p.name, [p.y, p.x]] as [string, [number, number]]),
-        fromEntries,
-      );
+      const param = {
+        type,address,
+        centerLat:petFriendlyPlaceList[0].y,
+        centerLng:petFriendlyPlaceList[0].x
+      }
 
       const showMap: KakaoBotBasicCard = {
         thumbnail: {
@@ -160,14 +61,12 @@ export class PlaceService {
           {
             action: 'webLink',
             label: '지도로 보기',
-            webLinkUrl: `https://api.dogcourse.net/map?${getQueryString(
-              position,
-            )}`,
+            webLinkUrl: `${process.env.DOGCOURSE_URL}/map?${getQueryString(param)}`,
           },
         ],
       };
 
-      console.log(petFriendlyPlaceList.length);
+      console.log(`store count : ${petFriendlyPlaceList.length}`);
       const responseBody: KakaoResponseBody = {
         version: '2.0',
         template: petFriendlyPlaceList
@@ -274,63 +173,37 @@ export class PlaceService {
     }
   }
 
-  async getTrafficInfo(params:NaverTrafficParams[]):Promise<any>{
+  async getTrafficInfo(params:NaverSearchParam):Promise<NaverMapResult[]>{
     try{
-      const transport = await pipe(
-        params,
+      const {currentLat, currentLng, type, address} = params;
+      console.time();
+      const petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address);
+      
+      const result = await pipe(
+        petFriendlyPlaceList,
         toAsync,
-        map(async (param)=> {
-          const transportParam:Transport = {
-            start:param.start, 
-            goal:param.goal, 
-            departureTime:'2023-02-03T15:25:34',
-            crs:param.crs, 
-            mode:param.mode,  
-            lang:param.lang}
-          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/transit/directions/point-to-point?${getQueryString(transportParam)}`))
-          .then((res)=>MapToTransportResult(param,res.data))}),
-        concurrent(params.length),
+        map(async (place)=>{
+          return {
+            name:place.name,
+            address:place.address,
+            lat:place.y.toString(),
+            lng:place.x.toString(),
+            options:pipe(place.options,map(o=>`${o.name}, `),reduce((a,b)=>a+b)),
+            images:pipe(place.images,map(i=>i.url),toArray),
+            status:place.workingStatus.status,
+            phone:place.phone,
+            shareLink:`https://m.place.naver.com/share?id=${place.id}`,
+            naverMapLink:`nmap://route/car?slat=${currentLat}&slng=${currentLng}&dlat=${place.y}&dlng=${place.x}&dname=${place.name}&appname=DogCourse`,
+            transport : await this.naverAPIService.getTransport(currentLng,currentLat,place.x,place.y),
+            car : await this.naverAPIService.getCar(currentLng,currentLat,place.x,place.y),
+            walk : await this.naverAPIService.getWalk(currentLng,currentLat,place.x,place.y)
+          }
+        }),
+        concurrent(petFriendlyPlaceList.length),
         toArray
       )
-  
-      const car = await pipe(
-        params,
-        toAsync,
-        map(async (param)=>{
-          const carParam:Car = {
-            start:param.start, 
-            goal:param.goal, 
-            crs:param.crs, 
-            mode:param.mode, 
-            rptype:param.rptype, 
-            cartype:param.cartype, 
-            fueltype:param.fueltype, 
-            lang:param.lang}
-          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/dir/findcar?${getQueryString(carParam)}`))
-            .then((res)=>MapToCarResult(param,res.data))}),
-        concurrent(params.length),
-        toArray
-      )
-
-      const walk = await pipe(
-        params,
-        toAsync,
-        map(async (param)=>{
-          const carParam:Walk = {
-            l:param.l, 
-            st:param.st, 
-            o:param.o, 
-            lang:param.lang}
-          return await firstValueFrom(this.httpSerivce.get(`https://map.naver.com/v5/api/dir/findwalk?${getQueryString(carParam)}`))
-            .then((res)=>MapToWalkResult(param,res.data))}),
-        concurrent(params.length),
-        toArray
-      )
-      return {
-        transport,
-        car,
-        walk
-      };
+      console.timeEnd();
+      return result;
     }catch(e){
       throw e;
     }

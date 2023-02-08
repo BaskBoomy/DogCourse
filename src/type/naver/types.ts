@@ -1,3 +1,19 @@
+export type NaverSearchParam = {
+  currentLat:string;
+  currentLng:string;
+  type:string;
+  address:string;
+}
+export type NaverMapResult = {
+  name:string;
+  address:string;
+  lat:string;
+  lng:string;
+  naverMapLink:string;
+  transport:NaverTrafficResult,
+  car:NaverTrafficResult,
+  walk:NaverTrafficResult,
+}
 export type NaverUrl = {
   type: string;
   url: string;
@@ -28,7 +44,7 @@ export type NaverSearchResult = {
   phone?: string;
   description: string;
   urlList: NaverUrl[];
-  images: NaverImage;
+  images: NaverImage[];
   imageURL: string;
   options: NaverOption[];
   naverMapURL: string;
@@ -95,3 +111,11 @@ export type NaverTrafficResult = {
   arrivalTime?: Date;
   taxiFare?:number;
 };
+export type NaverSearchURLParam = {
+  query: string,
+  type: string,
+  searchCoord : string,
+  displayCount: number,
+  isPlaceRecommendationReplace: boolean,
+  lang: string,
+}
