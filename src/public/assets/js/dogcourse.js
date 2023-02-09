@@ -75,7 +75,7 @@ function getCurrentPosition() {
 async function getTrafficInfo(currentLat, currentLng, type, address) {
   const param = { currentLat, currentLng, type, address };
   const response = await fetch(
-    `https://api.dogcourse.net/place/getTrafficInfo`,
+    `https://ca77-221-148-27-89.jp.ngrok.io/place/getTrafficInfo`,
     {
       method: 'POST',
       headers: {
@@ -146,7 +146,7 @@ getCurrentPosition().then(({ coords }) => {
                             <div class="marker-box-middle">
                                 <div class="time-box">
                                     <img class="time-icon" alt="icon" src="assets/imgs/dog-32.png"/>
-                                    <div class="time">${info.walk.duration}분</div>
+                                    <div class="time">${info.walk.duration == 0 ? '불가능' : `${info.walk.duration}분`}</div>
                                 </div>
                                 <div class="time-box">
                                     <img class="time-icon" alt="icon" src="assets/imgs/car-32.png">

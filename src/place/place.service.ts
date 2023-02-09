@@ -176,13 +176,16 @@ export class PlaceService {
   async getTrafficInfo(params:NaverSearchParam):Promise<NaverMapResult[]>{
     try{
       const {currentLat, currentLng, type, address} = params;
-      console.time();
+      console.time('petFriendlyPlaceList');
       const petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address);
+      console.timeEnd('petFriendlyPlaceList');
       
+      console.time('mapping');
       const result = await pipe(
         petFriendlyPlaceList,
         toAsync,
         map(async (place)=>{
+          let param = {lng:currentLng,lat:currentLat,dlng:place.x,dlat:place.y}
           return {
             name:place.name,
             address:place.address,
@@ -194,15 +197,15 @@ export class PlaceService {
             phone:place.phone,
             shareLink:`https://m.place.naver.com/share?id=${place.id}`,
             naverMapLink:`nmap://route/car?slat=${currentLat}&slng=${currentLng}&dlat=${place.y}&dlng=${place.x}&dname=${place.name}&appname=DogCourse`,
-            transport : await this.naverAPIService.getTransport(currentLng,currentLat,place.x,place.y),
-            car : await this.naverAPIService.getCar(currentLng,currentLat,place.x,place.y),
-            walk : await this.naverAPIService.getWalk(currentLng,currentLat,place.x,place.y)
+            transport : await this.naverAPIService.getTransport(param),
+            car : await this.naverAPIService.getCar(param),
+            walk : await this.naverAPIService.getWalk(param)
           }
         }),
         concurrent(petFriendlyPlaceList.length),
         toArray
       )
-      console.timeEnd();
+      console.timeEnd('mapping');
       return result;
     }catch(e){
       throw e;

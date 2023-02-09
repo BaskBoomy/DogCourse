@@ -35,6 +35,14 @@ export type NaverOption = {
   name: string;
   iconURL: string;
 };
+
+export type StartToGoalParam = {
+  lng:string;
+  lat:string;
+  dlng:number;
+  dlat:number;
+}
+export type BizHourInfo = '영업 중' | '곧 영업 종료' | '영업 종료' | '오늘 휴무' | undefined;
 export type NaverSearchResult = {
   id: number;
   name: string;
@@ -48,7 +56,7 @@ export type NaverSearchResult = {
   imageURL: string;
   options: NaverOption[];
   naverMapURL: string;
-  bizhourInfo: '영업 중' | '곧 영업 종료' | '영업 종료' | '오늘 휴무';
+  bizhourInfo: BizHourInfo;
   workingStatus:
     | { id: 1; status: '영업 중' }
     | { id: 2; status: '곧 영업 종료' }

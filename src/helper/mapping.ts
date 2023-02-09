@@ -2,10 +2,7 @@ import { NAVER_MAP_URL } from 'src/helper/url';
 import { KakaoBlockId, KakaoBotBasicCard, KakaoBotButton } from 'src/type/kakao/types';
 import { Car, NaverSearchResult, NaverTrafficResult, Transport, Walk } from 'src/type/naver/types';
 
-export const MapToTransportResult = (
-  param: Transport,
-  data,
-): NaverTrafficResult => {
+export const MapToTransportResult = (param: Transport,data): NaverTrafficResult => {
   if (data.status == 'POINTS_ARE_TOO_CLOSE' || data.paths.length==0) {
     return {
       isTooClose: true,
@@ -25,10 +22,7 @@ export const MapToTransportResult = (
   }
 };
 
-export const MapToCarResult = (
-  param: Car,
-  data,
-): NaverTrafficResult => {
+export const MapToCarResult = (param: Car,data): NaverTrafficResult => {
   if (data.code !== 0) {
     return {
       isTooClose: true,
@@ -49,16 +43,21 @@ export const MapToCarResult = (
   }
 };
 
-export const MapToWalkResult = (
-    param: Walk,
-    data,
-  ): NaverTrafficResult => {
+export const MapToWalkResult = (param: Walk,data): NaverTrafficResult => {
+    if(data.code && data.code == 4){
+      return{
+        isTooClose: false,
+        start: param.l.split(';')[0],
+        goal: param.l.split(';')[1],
+        duration: 0,
+      }
+    }
     const short = data.routes[0].summary;
     return {
-    isTooClose: false,
-    start: param.l.split(';')[0],
-    goal: param.l.split(';')[1],
-    duration: Math.round(short.duration/60),
+      isTooClose: false,
+      start: param.l.split(';')[0],
+      goal: param.l.split(';')[1],
+      duration: Math.round(short.duration/60),
     };
   };
   
@@ -94,4 +93,13 @@ export const MapToKakaoTemplateResult = (dog_place:NaverSearchResult,type:string
     },
     buttons,
   };
+}
+
+export const MapToBizHourInfo = (bizhourInfo) =>{
+  switch(bizhourInfo){
+    case '영업 중' : return 1;
+    case '곧 영업 종료' : return 2;
+    case '영업 종료' : return 3;
+    default : return 4;
+  }
 }

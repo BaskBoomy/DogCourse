@@ -10,10 +10,10 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
-import { MapToCarResult, MapToTransportResult } from 'src/helper/mapping';
+import { MapToBizHourInfo, MapToCarResult, MapToTransportResult } from 'src/helper/mapping';
 import { getQueryString } from 'src/helper/query';
 import { NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/helper/url';
-import { Car, NaverOptionId, NaverSearchResult, NaverSearchURLParam, NaverTrafficResult, Transport, Walk } from 'src/type/naver/types';
+import { Car, NaverOptionId, NaverSearchResult, NaverSearchURLParam, NaverTrafficResult, StartToGoalParam, Transport, Walk } from 'src/type/naver/types';
 import { GoogleAPIService } from '../googleAPI/googleAPI.service';
 import { MapToWalkResult } from './../../helper/mapping';
 
@@ -55,15 +55,8 @@ export class NaverAPIService {
             return {
               ...res.data,
               workingStatus: {
-                id:
-                  place.bizhourInfo == '영업 중'
-                    ? 1
-                    : place.bizhourInfo == '곧 영업 종료'
-                    ? 2
-                    : place.bizhourInfo == '영업 종료'
-                    ? 3
-                    : 4,
-                status: place.bizhourInfo,
+                id:MapToBizHourInfo(place.bizhourInfo),
+                status: place.bizhourInfo ? place.bizhourInfo : '영업정보 없음',
               },
             };
           }),
@@ -78,10 +71,10 @@ export class NaverAPIService {
     return petFriendlyPlaceList;
   }
 
-  async getTransport(lng:string,lat:string,dlng:number,dlat:number):Promise<NaverTrafficResult>{
+  async getTransport(traffic:StartToGoalParam):Promise<NaverTrafficResult>{
     const param:Transport = {
-      start:`${lng},${lat}`, 
-      goal:`${dlng},${dlat}`, 
+      start:`${traffic.lng},${traffic.lat}`, 
+      goal:`${traffic.dlng},${traffic.dlat}`, 
       departureTime:'2023-02-03T15:25:34',
       crs:'EPSG:4326', 
       mode:'TIME',  
@@ -94,10 +87,10 @@ export class NaverAPIService {
     return transportInfo;
   }
   
-  async getCar(lng:string,lat:string,dlng:number,dlat:number):Promise<NaverTrafficResult>{
+  async getCar(traffic:StartToGoalParam):Promise<NaverTrafficResult>{
     const param:Car = {
-      start:`${lng},${lat}`, 
-      goal:`${dlng},${dlat}`, 
+      start:`${traffic.lng},${traffic.lat}`, 
+      goal:`${traffic.dlng},${traffic.dlat}`, 
       crs:'EPSG:4326', 
       mode:'TIME', 
       rptype:4,
@@ -112,9 +105,9 @@ export class NaverAPIService {
     return carInfo;
   }
   
-  async getWalk(lng:string,lat:string,dlng:number,dlat:number):Promise<NaverTrafficResult>{
+  async getWalk(traffic:StartToGoalParam):Promise<NaverTrafficResult>{
     const param:Walk = {
-      l:`${lng},${lat};${dlng},${dlat}`, 
+      l:`${traffic.lng},${traffic.lat};${traffic.dlng},${traffic.dlat}`, 
       st:1,
       o:'all',
       lang:'ko'
