@@ -12,9 +12,9 @@ permissions:
 hooks:
 # ApplicationStop:
 # DownloadBundle:
- BeforeInstall:
-   - location: scripts/before_install.sh
-     timeout: 300
+#  BeforeInstall:
+#    - location: scripts/before_install.sh
+#      timeout: 300
 # Install:
   AfterInstall:
     - location: scripts/after_install.sh
