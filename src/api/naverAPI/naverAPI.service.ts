@@ -41,13 +41,13 @@ export class NaverAPIService {
 
   async getPetFriendlyList(type: string,address: string): Promise<NaverSearchResult[]> {
     try {
-      console.log('reading cache..')
+      console.log('getPetFriendlyList: finding cache..')
       let cache = await this.cacheManager.get<NaverSearchResult[]>(`${type}${address}`);
       if(cache){
-        console.log('cache found');
+        console.log('getPetFriendlyList: cache found!');
         return cache;
       }
-      console.log('cache missed');
+      console.log('getPetFriendlyList: cache missed');
       //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
       const searchCoord = await this.googleAPIService.getXYCoordinate(
         address as string,
@@ -94,9 +94,9 @@ export class NaverAPIService {
         sortBy((place) => place.workingStatus.id),
         toArray,
       );
-      console.log('cache saving..');
-      await this.cacheManager.store.set(`${type}${address}`,petFriendlyPlaceList,8640000);
-      console.log('cache stored..');
+      console.log('getPetFriendlyList: cache saving..');
+      await this.cacheManager.store.set(`${type}${address}`,petFriendlyPlaceList,+process.env.CACHE_TTL);
+      console.log('getPetFriendlyList: cache stored..');
       return petFriendlyPlaceList;
     } catch (e) {
       throw e;

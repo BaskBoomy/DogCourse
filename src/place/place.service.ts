@@ -4,7 +4,8 @@ import {
   pipe, reduce, take, toArray, toAsync
 } from '@fxts/core';
 import { HttpService } from '@nestjs/axios/dist';
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { firstValueFrom } from 'rxjs';
 import { NaverAPIService } from 'src/api/naverAPI/naverAPI.service';
 import { MapToKakaoTemplateResult } from 'src/helper/mapping';
@@ -25,7 +26,8 @@ import { KakaoOutput } from './../type/kakao/types';
 export class PlaceService {
   constructor(
     private readonly httpSerivce: HttpService,
-    private readonly naverAPIService: NaverAPIService
+    private readonly naverAPIService: NaverAPIService,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache
   ) {}
   async getDogFriendlyPlace(data: KaKaoChatBotParam):Promise<KakaoResponseBody> {
     try {
@@ -176,6 +178,13 @@ export class PlaceService {
   async getTrafficInfo(params:NaverSearchParam):Promise<NaverMapResult[]>{
     try{
       const {currentLat, currentLng, type, address} = params;
+      console.log('getTrafficInfo: finding cache!');
+      const cache = await this.cacheService.get<NaverMapResult[]>(`${currentLat},${currentLng},${type},${address}`);
+      if(cache){
+        console.log('getTrafficInfo: cache found!');
+        return cache;
+      }
+      console.log('getTrafficInfo: cache missed');
       console.time('petFriendlyPlaceList');
       const petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address);
       console.timeEnd('petFriendlyPlaceList');
@@ -206,6 +215,9 @@ export class PlaceService {
         toArray
       )
       console.timeEnd('mapping');
+      console.log('getTrafficInfo: cache saving..');
+      await this.cacheService.set(`${currentLat},${currentLng},${type},${address}`,result,+process.env.CACHE_TTL);
+      console.log('getTrafficInfo: cache stored..');
       return result;
     }catch(e){
       throw e;

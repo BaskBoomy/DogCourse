@@ -19,6 +19,7 @@ module.exports = {
         DOGCOURSE_URL:'https://728f-221-148-27-89.jp.ngrok.io',
         REDIS_HOST:'127.0.0.1',
         REDIS_PORT:6379,
+        CACHE_TTL:8640000
       },
       env_production: {
         NODE_ENV: 'production',
@@ -33,6 +34,7 @@ module.exports = {
         DOGCOURSE_URL:'https://api.dogcourse.net',
         REDIS_HOST:'dogcourse-redis.rkfo3f.ng.0001.apn2.cache.amazonaws.com',
         REDIS_PORT:6379,
+        CACHE_TTL:8640000
       },
     },
   ],
