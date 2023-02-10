@@ -1,5 +1,6 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { CacheModule, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import * as redisStore from 'cache-manager-ioredis';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerMiddleware } from './middleware/logger';
@@ -9,7 +10,13 @@ import { ReactionModule } from './reaction/reaction.module';
   imports: [
     PlaceModule,
     ReactionModule,
-    ConfigModule.forRoot()
+    ConfigModule.forRoot(),
+    CacheModule.register({
+      store: redisStore,
+      isGlobal: true,
+      host: process.env.REDIS_HOST,
+      port: +process.env.REDIS_PORT,
+    })
   ],
   controllers: [AppController],
   providers: [AppService],

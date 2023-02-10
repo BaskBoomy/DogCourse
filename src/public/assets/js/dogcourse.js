@@ -75,7 +75,7 @@ function getCurrentPosition() {
 async function getTrafficInfo(currentLat, currentLng, type, address) {
   const param = { currentLat, currentLng, type, address };
   const response = await fetch(
-    `https://ca77-221-148-27-89.jp.ngrok.io/place/getTrafficInfo`,
+    `https://api.dogcourse.net/place/getTrafficInfo`,
     {
       method: 'POST',
       headers: {
