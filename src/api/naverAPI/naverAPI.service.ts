@@ -20,6 +20,7 @@ import { getQueryString } from 'src/helper/query';
 import { NAVER_SEARCH_URL, PLACE_INFO_URL } from 'src/helper/url';
 import {
   Car,
+  NaverMapCenter,
   NaverOptionId,
   NaverSearchResult,
   NaverSearchURLParam,
@@ -39,19 +40,25 @@ export class NaverAPIService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async getPetFriendlyList(type: string,address: string): Promise<NaverSearchResult[]> {
+  async getPetFriendlyList(type: string,address: string,current?:NaverMapCenter): Promise<NaverSearchResult[]> {
     try {
-      console.log('getPetFriendlyList: finding cache..')
-      let cache = await this.cacheManager.get<NaverSearchResult[]>(`${type}${address}`);
-      if(cache){
-        console.log('getPetFriendlyList: cache found!');
-        return cache;
+      let searchCoord:string;
+      if(!current){
+         //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
+        searchCoord = await this.googleAPIService.getXYCoordinate(
+          address as string,
+        );
+        console.log('getPetFriendlyList: finding cache..')
+        let cache = await this.cacheManager.get<NaverSearchResult[]>(`${type}${address}`);
+        if(cache){
+          console.log('getPetFriendlyList: cache found!');
+          return cache;
+        }
+        console.log('getPetFriendlyList: cache missed');
+      }else{
+        searchCoord = `${current._lng};${current._lat}`
       }
-      console.log('getPetFriendlyList: cache missed');
-      //구글 MAP API를 통해 입력받은 주소지의 좌표 반환
-      const searchCoord = await this.googleAPIService.getXYCoordinate(
-        address as string,
-      );
+     
 
       const param: NaverSearchURLParam = {
         query: type,
@@ -61,7 +68,6 @@ export class NaverAPIService {
         isPlaceRecommendationReplace: true,
         lang: 'ko',
       };
-
       //전체 검색 결과
       const naverSearchResultList = await firstValueFrom(
         this.httpSerivce.get(NAVER_SEARCH_URL(param)),

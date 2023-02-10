@@ -10,20 +10,20 @@
     <title>DogCourse Map</title>
     <link rel="icon" type="image/x-icon" href="assets/imgs/dog-face.png">
     <link rel="stylesheet" type="text/css" href="assets/css/info-box.css">
-    <script src="https://unpkg.com/fxjs/dist/fx.js"></script>
     <script type="text/javascript"
-        src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId={{clientId}}"></script>
-    <script type="text/javascript" src="assets/js/dogcourse.js"></script>
+        src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId={{NAVER_CLIENT_ID}}"></script>
     <script>
         let type = "{{type}}";
         let address = "{{address}}";
         let centerLat = "{{centerLat}}";
         let centerLng = "{{centerLng}}";
+        let DOGCOURSE_URL = "{{DOGCOURSE_URL}}"
     </script>
 </head>
 <body>
     <div id="map" style="width:100%;height:98vh;position:absolute"></div>
     <div id="loader"></div>
+    <div id="currentBtn"class="btn-div" onclick="searchByCurrentPosition()"><span class="btn-center">여기서 검색</span></div>
     <div id="placeInfoBox" class="place-info-box">
         <div class="place-info-box-top">
             <div class="place-info-boxtop-left">
@@ -38,8 +38,9 @@
                 <a id="naverMapLink" href="" target="_blank" class="icon-link"><img src="assets/imgs/navigator-18.png" alt="icon"/></a>
             </div>
         </div>
-        <div id="imageSlideBox" class="place-info-box-middle">
-        </div>
+        <div id="imageSlideBox" class="place-info-box-middle"></div>
     </div>
+    
+    <script type="text/javascript" src="assets/js/dogcourse.js"></script>
 </body>
 </html>

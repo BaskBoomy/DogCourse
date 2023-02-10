@@ -1,6 +1,6 @@
 import {
   concurrent,
-  filter, map,
+  filter, join, map,
   pipe, reduce, take, toArray, toAsync
 } from '@fxts/core';
 import { HttpService } from '@nestjs/axios/dist';
@@ -18,7 +18,7 @@ import {
   KakaoResponseBody
 } from 'src/type/kakao/types';
 import {
-  BizHour, NaverMapResult, NaverOption, NaverSearchParam
+  BizHour, NaverMapResult, NaverOption, NaverSearchParam, NaverSearchResult
 } from 'src/type/naver/types';
 import { KakaoOutput } from './../type/kakao/types';
 
@@ -177,16 +177,20 @@ export class PlaceService {
 
   async getTrafficInfo(params:NaverSearchParam):Promise<NaverMapResult[]>{
     try{
-      const {currentLat, currentLng, type, address} = params;
-      console.log('getTrafficInfo: finding cache!');
-      const cache = await this.cacheService.get<NaverMapResult[]>(`${currentLat},${currentLng},${type},${address}`);
-      if(cache){
-        console.log('getTrafficInfo: cache found!');
-        return cache;
+      const {currentLat, currentLng, type, address, current} = params;
+      let petFriendlyPlaceList:NaverSearchResult[];
+      if(!current){
+        console.log('getTrafficInfo: finding cache!');
+        const cache = await this.cacheService.get<NaverMapResult[]>(`${currentLat},${currentLng},${type},${address}`);
+        if(cache){
+          console.log('getTrafficInfo: cache found!');
+          return cache;
+        }
+        console.log('getTrafficInfo: cache missed');
       }
-      console.log('getTrafficInfo: cache missed');
+      
       console.time('petFriendlyPlaceList');
-      const petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address);
+      petFriendlyPlaceList = await this.naverAPIService.getPetFriendlyList(type,address,current);
       console.timeEnd('petFriendlyPlaceList');
       
       console.time('mapping');
@@ -200,7 +204,7 @@ export class PlaceService {
             address:place.address,
             lat:place.y.toString(),
             lng:place.x.toString(),
-            options:pipe(place.options,map(o=>`${o.name}, `),reduce((a,b)=>a+b)),
+            options:pipe(place.options,map(o=>`${o.name}`),join(',')),
             images:pipe(place.images,map(i=>i.url),toArray),
             status:place.workingStatus.status,
             phone:place.phone,

@@ -1,8 +1,15 @@
+export type NaverMapCenter = {
+  x:number;
+  y:number;
+  _lat:number;
+  _lng:number;
+}
 export type NaverSearchParam = {
   currentLat:string;
   currentLng:string;
   type:string;
   address:string;
+  current?:NaverMapCenter;
 }
 export type NaverMapResult = {
   name:string;
@@ -127,3 +134,6 @@ export type NaverSearchURLParam = {
   isPlaceRecommendationReplace: boolean,
   lang: string,
 }
+export type NaverMapData = {
+  [p: string]: string | number;
+};

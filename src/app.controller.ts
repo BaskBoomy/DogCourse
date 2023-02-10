@@ -1,6 +1,7 @@
 import { Controller, Get, Render, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { AppService } from './app.service';
+import { NaverMapData } from './type/naver/types';
 
 @Controller()
 export class AppController {
@@ -14,9 +15,14 @@ export class AppController {
 
   @Get('map')
   map(@Res() res: Response){
+    const {query} = res.req;
+    let mapData:NaverMapData = null;
+    if(query){
+      mapData = this.appService.getMapData(res.req);
+    }
     return res.render(
       'map',
-      this.appService.getMapData(res.req)
+      mapData
     );
   }
 }
