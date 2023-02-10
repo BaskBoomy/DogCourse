@@ -1,0 +1,3 @@
+[submodule "src/public"]
+	path = src/public
+	url = https://github.com/BaskBoomy/DogCourse_submodule.git
