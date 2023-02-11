@@ -5,12 +5,12 @@ on:
 jobs:       
   deploy:
     runs-on: ubuntu-latest
+    # 해당 레포지토리로 check-out하는 Action을 불러옴
     steps:
-      # Step 1
     - name: Checkout to repo
       uses: actions/checkout@v2
 
-      # Step 2
+    #git hub 계정 접근
     - name: Set AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -18,7 +18,14 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
 
-      # Step 3
+    # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
+    - name: Generate Environment Variables File for Production
+      run: |
+        jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+      env:
+        SECRETS_CONTEXT: ${{ toJson(secrets) }}
+
+    # Step 3
     - name: Create CodeDeploy Deployment
       id: deploy
       run: |
@@ -27,3 +34,5 @@ jobs:
         --deployment-group-name dogcourse-server-cd1 \
         --deployment-config-name CodeDeployDefault.OneAtATime \
         --github-location repository=${{ github.repository }},commitId=${{ github.sha }}
+
+    
