@@ -12,11 +12,22 @@ jobs:
       
     # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
     - name: Generate Environment Variables File for Production
-      run: |
-        touch .env
-        jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
-      env:
-        SECRETS_CONTEXT: ${{ toJson(secrets) }}
+      uses: SpicyPizza/create-envfile@v1
+      with:
+        GOOGLE_SECRET_KEY: ${{secrets.GOOGLE_SECRET_KEY}}
+        NAVER_CLIENT_ID: ${{secrets.NAVER_CLIENT_ID}}
+        NAVER_CLIENT_SECRET: ${{secrets.NAVER_CLIENT_SECRET}}
+        CLOUDINARY_URL: ${{secrets.CLOUDINARY_URL}}
+        CLOUDINARY_NAME: ${{secrets.CLOUDINARY_NAME}}
+        CLOUDINARY_KEY: ${{secrets.CLOUDINARY_KEY}}
+        CLOUDINARY_SECRET: ${{secrets.CLOUDINARY_SECRET}}
+        DOGCOURSE_URL: ${{secrets.DOGCOURSE_URL}}
+        REDIS_HOST: ${{secrets.REDIS_HOST}}
+        REDIS_HOST1: ${{secrets.REDIS_HOST1}}
+        REDIS_HOST2: ${{secrets.REDIS_HOST2}}
+        REDIS_HOST3: ${{secrets.REDIS_HOST3}}
+        REDIS_PORT: ${{secrets.REDIS_PORT}}
+        file_name: .env
 
     #git hub 계정 접근
     - name: Set AWS credentials
