@@ -9,31 +9,14 @@ jobs:
     steps:
     - name: Checkout to repo
       uses: actions/checkout@v2
-
+      
     # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
     - name: Generate Environment Variables File for Production
       run: |
-        echo "GOOGLE_SECRET_KEY=$GOOGLE_SECRET_KEY" >> .env
-        echo "NAVER_CLIENT_ID=$NAVER_CLIENT_ID" >> .env
-        echo "NAVER_CLIENT_SECRET=$NAVER_CLIENT_SECRET" >> .env
-        echo "CLOUDINARY_URL=$CLOUDINARY_URL" >> .env
-        echo "CLOUDINARY_NAME=$CLOUDINARY_NAME" >> .env
-        echo "CLOUDINARY_KEY=$CLOUDINARY_KEY" >> .env
-        echo "CLOUDINARY_SECRET=$CLOUDINARY_SECRET" >> .env
-        echo "DOGCOURSE_URL=$DOGCOURSE_URL" >> .env
-        echo "REDIS_HOST=$REDIS_HOST" >> .env
-        echo "REDIS_PORT=$REDIS_PORT" >> .env
+        touch .env
+        jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
       env:
-        GOOGLE_SECRET_KEY: ${{ secrets.GOOGLE_SECRET_KEY }}
-        NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-        NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-        CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
-        CLOUDINARY_NAME: ${{ secrets.CLOUDINARY_NAME }}
-        CLOUDINARY_KEY: ${{ secrets.CLOUDINARY_KEY }}
-        CLOUDINARY_SECRET: ${{ secrets.CLOUDINARY_SECRET }}
-        DOGCOURSE_URL: ${{ secrets.DOGCOURSE_URL }}
-        REDIS_HOST: ${{ secrets.REDIS_HOST }}
-        REDIS_PORT: ${{ secrets.REDIS_PORT }}
+        SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
     #git hub 계정 접근
     - name: Set AWS credentials
