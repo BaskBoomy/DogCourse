@@ -9,6 +9,13 @@ jobs:
     steps:
     - name: Checkout to repo
       uses: actions/checkout@v2
+      
+    # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
+    - name: Generate Environment Variables File for Production
+      run: |
+        jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+      env:
+        SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
     #git hub 계정 접근
     - name: Set AWS credentials
@@ -18,13 +25,7 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
 
-    # Github Repository Secrets를 통해 환경 변수 파일을 생성합니다.
-    - name: Generate Environment Variables File for Production
-      run: |
-        jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
-      env:
-        SECRETS_CONTEXT: ${{ toJson(secrets) }}
-
+   
     # Step 3
     - name: Create CodeDeploy Deployment
       id: deploy
