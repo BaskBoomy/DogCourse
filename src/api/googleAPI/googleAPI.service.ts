@@ -9,15 +9,22 @@ export class GoogleAPIService{
     constructor(private httpService:HttpService){}
     
     async getXYCoordinate(place: string): Promise<string> {
-        const {data} = await firstValueFrom(
-            this.httpService.get(GOOGLE_GEO_URL(place)).pipe(
-                catchError((error:any)=>{
-                    this.logger.error(error.response.data);
-                    throw 'An error happened!';
-                })
-            )
-        );
-        const location = data.results[0].geometry.location;
-        return `${location.lng};${location.lat}`;
+        try{
+            const {data} = await firstValueFrom(
+                this.httpService.get(GOOGLE_GEO_URL(place)).pipe(
+                    catchError((error:any)=>{
+                        this.logger.error(error.response.data);
+                        throw 'An error happened!';
+                    })
+                )
+            );
+            if(data.error_message){
+                throw data;
+            }
+            const location = data.results[0].geometry.location;
+            return `${location.lng};${location.lat}`;
+        }catch(e){
+            throw e;
+        }
     }
 } 
